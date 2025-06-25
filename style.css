@@ -1,0 +1,67 @@
+/* --- ESTILOS PERSONALIZADOS --- */
+body {
+    font-family: 'Lato', sans-serif;
+}
+
+#screen {
+    min-height: 700px; /* Ajustar si es necesario */
+    max-width: 1123px;
+}
+
+.action-bar {
+    background-color: rgba(56, 96, 178, 1);
+    border-bottom: 1px solid rgba(0, 18, 107, 1);
+    min-height: 60px; /* Reducir un poco si se prefiere */
+    flex-shrink: 0;
+}
+
+.action-bar-title {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+}
+
+.form-label {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control-color {
+    min-height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    width: 60px;
+}
+
+#label-preview-canvas {
+    max-width: 95%;
+    max-height: 250px; /* Ajustar la altura de la previsualización */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#label-generation-status {
+    min-height: 20px;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background-color: rgba(0, 18, 107, 1);
+    border-color: rgba(0, 18, 107, 1);
+}
+.btn-primary:hover {
+    background-color: rgba(56, 96, 178, 1);
+    border-color: rgba(56, 96, 178, 1);
+}
+
+/* Para el <details> de configuración avanzada */
+details > summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #007bff; /* Color de enlace Bootstrap */
+    margin-bottom: 0.5rem;
+}
+details > summary:hover {
+    text-decoration: underline;
+}
