@@ -26,38 +26,59 @@ const DEFAULT_CONFIG = {
     labelHeightCm: 3.5,
     dpi: 600,
     fontFamily: 'Arial, sans-serif',
-    labelText: {
-        baseFontSize: 28,
+    labelText: { // Para "MATRICULA", "MATERIAL", "CANTIDAD", "FECHA"
+        baseFontSize: 26, // Reducimos un poco para que quepan más cosas
         fontWeight: "bold",
         color: "#000000"
     },
-    codeContentText: {
-        baseFontSize: 30,
+    codeContentText: { // Para el valor de la matrícula y el material
+        baseFontSize: 28, // Reducimos un poco
         fontWeight: "normal",
         color: "#000000"
     },
-    // No incluimos dynamicText ya que parece que no lo usas para los elementos actuales
+    dynamicText: { // Para el valor de Cantidad y Fecha (si los textos son diferentes a codeContentText)
+        baseFontSize: 28, // Mismo tamaño que codeContentText por ahora
+        fontWeight: "normal",
+        color: "#000000"
+    },
     elements: {
+        // --- Sección Izquierda: MATRICULA y su QR ---
         matriculaLabel: { type: 'text', text: "MATRICULA",
-            xPercent: 0.25, yPercent: 0.05,
+            xPercent: 0.15, yPercent: 0.05, // MÁS A LA IZQUIERDA y arriba
             textAlign: 'center', textBaseline: 'top' },
-        matriculaQRValue: { type: 'text',
-            xPercent: 0.25, yPercent: 0.18,
+        matriculaQRValue: { type: 'text', // Valor de la matrícula
+            xPercent: 0.15, yPercent: 0.18, // Debajo del label "MATRICULA"
             textAlign: 'center', textBaseline: 'top' },
         matriculaQrCode: { type: 'qr',
-            sizePercentHeight: 0.60,
-            xPercent: 0.25, yPercent: 0.35,
+            sizePercentHeight: 0.55, // Reducimos un poco para dar espacio a la sección central
+            xPercent: 0.15, yPercent: 0.35, // Posición Y del QR, debajo del texto del valor
             anchor: 'center-top',
             color: "#000000" },
+
+        // --- Sección Central: CANTIDAD y FECHA (REINTRODUCIDA) ---
+        cantidadLabel:  { type: 'text', text: "CANT.", // Abreviado para ahorrar espacio
+            xPercent: 0.50, yPercent: 0.05, // Arriba en el centro
+            textAlign: 'center', textBaseline: 'top' },
+        cantidadValue:  { type: 'text',
+            xPercent: 0.50, yPercent: 0.25, // Debajo de CANT.
+            textAlign: 'center', textBaseline: 'top' },
+        fechaLabel:     { type: 'text', text: "FECHA",
+            xPercent: 0.50, yPercent: 0.50, // Más abajo en el centro
+            textAlign: 'center', textBaseline: 'top' },
+        fechaValue:     { type: 'text',
+            xPercent: 0.50, yPercent: 0.70, // Debajo de FECHA
+            textAlign: 'center', textBaseline: 'top' },
+
+        // --- Sección Derecha: MATERIAL y su QR ---
         materialLabel:  { type: 'text', text: "MATERIAL",
-            xPercent: 0.75, yPercent: 0.05,
+            xPercent: 0.85, yPercent: 0.05, // MÁS A LA DERECHA y arriba
             textAlign: 'center', textBaseline: 'top' },
         materialValueText: { type: 'text',
-            xPercent: 0.75, yPercent: 0.18,
+            xPercent: 0.85, yPercent: 0.18, // Debajo del label "MATERIAL"
             textAlign: 'center', textBaseline: 'top' },
         materialQrCode: { type: 'qr',
-            sizePercentHeight: 0.60,
-            xPercent: 0.75, yPercent: 0.35,
+            sizePercentHeight: 0.55, // Mismo tamaño que el otro QR (reducido un poco)
+            xPercent: 0.85, yPercent: 0.35, // Misma Posición Y del QR
             anchor: 'center-top',
             color: "#000000" }
     }
