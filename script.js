@@ -450,17 +450,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     previewCanvas = document.getElementById('label-preview-canvas');
     if (!previewCanvas) {
-        console.error("Elemento canvas 'label-preview-canvas' no encontrado!");
+        console.error("CRÍTICO: Elemento canvas 'label-preview-canvas' no encontrado!");
         alert("Error crítico: Canvas no encontrado. La aplicación no funcionará.");
-        return;
+        return; // Detener si el canvas no existe
     }
     previewCtx = previewCanvas.getContext('2d');
     if (!previewCtx) {
-        console.error("No se pudo obtener el contexto 2D del canvas!");
+        console.error("CRÍTICO: No se pudo obtener el contexto 2D del canvas!");
         alert("Error crítico: Contexto del canvas no obtenido. La aplicación no funcionará.");
-        return;
+        return; // Detener si el contexto no se puede obtener
     }
-    console.log("Canvas y contexto inicializados correctamente.");
+    console.log("Canvas y contexto inicializados correctamente. previewCanvas:", previewCanvas, "previewCtx:", previewCtx);
 
     setTextContent('#label-generator-screen-title', "Impresión de Matrículas");
 
@@ -476,11 +476,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlCantidad && inputCantidad) inputCantidad.value = urlCantidad;
     if (urlMaterial && inputMaterial) inputMaterial.value = urlMaterial;
     
-    console.log("Intentando previsualización inicial...");
-    // Asegurarse de que las librerías estén cargadas antes de la primera previsualización podría ser necesario
-    // pero con los scripts al final del body, DOMContentLoaded debería ser suficiente.
-    handlePreviewLabel();
+    console.log("Datos de URL aplicados (si existen). Intentando previsualización inicial...");
+    
+    // Asegurarse de que el canvas y el contexto estén listos antes de llamar
+    if (previewCanvas && previewCtx) {
+        handlePreviewLabel(); // Previsualización inicial
+    } else {
+        console.error("No se llamó a handlePreviewLabel inicialmente porque canvas o ctx no estaban listos (esto no debería pasar si las comprobaciones anteriores funcionaron).");
+    }
 
+    // ... (resto del código para mostrar la pantalla inicial)
     const initialScreen = document.getElementById(currentScreenId);
     if (initialScreen) {
          document.querySelectorAll('.screen-view').forEach(sv => { sv.classList.add('d-none'); sv.classList.remove('active', 'd-flex'); });
@@ -491,4 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-console.log("Script.js cargado completamente.");
+console.log("Script.js cargado completamente (fuera de DOMContentLoaded).");
+
+
