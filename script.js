@@ -163,11 +163,13 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                 let elX = (elConfig.xPercent || 0) * labelWidthPx;
                 let elY = (elConfig.yPercent || 0) * labelHeightPx;
 
+               // Dentro de la función drawOrGenerateLabel, en el bucle for (const key in config.elements)
+// ...
                 if (elConfig.type === 'text') {
                     let textToDraw = "";
-                    let currentFontConfig = {};
+                    let currentFontConfig = {}; // Declarar aquí para asegurar que siempre se asigna
 
-                    if (key.includes("Label")) {
+                    if (key.includes("Label")) { // matriculaLabel, cantidadLabel, fechaLabel, materialLabel
                         textToDraw = elConfig.text;
                         currentFontConfig = config.labelText;
                     } else if (key === 'matriculaQRValue') {
@@ -176,21 +178,27 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                     } else if (key === 'materialValueText') {
                         textToDraw = labelData.material;
                         currentFontConfig = config.codeContentText;
+                    } else if (key === 'cantidadValue') { // NUEVO CASO
+                        textToDraw = labelData.cantidad;
+                        currentFontConfig = config.dynamicText; // O usa codeContentText si quieres el mismo estilo
+                    } else if (key === 'fechaValue') {    // NUEVO CASO
+                        textToDraw = labelData.fecha;
+                        currentFontConfig = config.dynamicText; // O usa codeContentText
                     }
-                    // No hay más elementos de texto en este layout
 
-                    if (textToDraw && currentFontConfig) {
+                    if (textToDraw && currentFontConfig && currentFontConfig.baseFontSize) { // Añadida comprobación para currentFontConfig
                         const fontSize = getScaledFontSize(currentFontConfig.baseFontSize);
                         const fontStyle = `${currentFontConfig.fontWeight || "normal"} ${fontSize.toFixed(0)}px ${config.fontFamily || 'Arial'}`;
                         targetCtx.font = fontStyle;
                         targetCtx.fillStyle = currentFontConfig.color || "#000000";
                         targetCtx.textAlign = elConfig.textAlign || 'left';
-                        targetCtx.textBaseline = elConfig.textBaseline || 'alphabetic';
+                        targetCtx.textBaseline = elConfig.textBaseline || 'alphabetic'; // 'top' suele ser mejor para estos layouts
                         console.log(`  Dibujando TEXTO '${textToDraw}' en (${elX.toFixed(0)}, ${elY.toFixed(0)}) con fuente: ${fontStyle}`);
                         targetCtx.fillText(textToDraw, elX, elY);
                     } else {
-                        console.log(`  TEXTO para ${key} está vacío o fontConfig falta, no se dibuja.`);
+                        console.log(`  TEXTO para ${key} está vacío o currentFontConfig/baseFontSize falta, no se dibuja. textToDraw: '${textToDraw}', currentFontConfig:`, currentFontConfig);
                     }
+// ...
 
                 } else if (elConfig.type === 'qr') {
                     let qrSize = (elConfig.sizePercentHeight || 0.5) * labelHeightPx; // Fallback para sizePercentHeight
