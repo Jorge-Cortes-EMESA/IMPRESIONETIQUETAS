@@ -70,7 +70,7 @@ function getUrlParameter(name) {
             heightPercentHeight: 0.80,  // Ejemplo: Aumentado de 0.40 a 0.60 (60% de la altura de la etiqueta)
             widthPercentWidth: 0.45,   // Ejemplo: Aumentado de 0.30 a 0.45 (permite más espacio horizontal)
             // --- FIN AJUSTES ---
-            xPercent: 0.83, yPercent: 0.30,  // Posición Y del código de barras.
+            xPercent: 0.85, yPercent: 0.30,  // Posición Y del código de barras.
                                              // Si heightPercentHeight es 0.60, y quieres que empiece un poco debajo de materialLabel (0.15)
                                              // y que quede espacio para el texto debajo, 0.30 podría ser un buen punto de partida para yPercent.
                                              // (0.15 (label) + un pequeño espacio + 0.30 (inicio barcode))
@@ -80,7 +80,7 @@ function getUrlParameter(name) {
             displayValue: false
         },
         materialBarcodeValue:  { type: 'text', // Texto debajo del Código de Barras
-            xPercent: 0.83, yPercent: 0.92,  // Posición Y del texto debajo del código de barras.
+            xPercent: 0.83, yPercent: 0.95,  // Posición Y del texto debajo del código de barras.
                                              // Si el barcode empieza en y=0.30 y tiene alto de 0.60, termina en y=0.90.
                                              // Así que 0.92 le da un pequeño espacio.
             textAlign: 'center', textBaseline: 'top' }
