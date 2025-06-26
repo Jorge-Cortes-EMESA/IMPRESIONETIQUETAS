@@ -13,68 +13,79 @@ function getUrlParameter(name) {
 // ... (resto de tu script.js) ...
     function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-    const DEFAULT_CONFIG = {
-        labelWidthCm: 10,
-        labelHeightCm: 3.5,
-        dpi: 600,
-        fontFamily: 'Arial, sans-serif',
-        dynamicText: {
-            baseFontSize: 35,
-            fontWeight: "normal",
-            color: "#000000"
-        },
-        labelText: {
-            baseFontSize: 30,
-            fontWeight: "normal",
-            color: "#000000"
-        },
-        codeContentText: {
-            baseFontSize: 28,
-            fontWeight: "normal",
-            color: "#000000"
-        },
-        elements: {
-            matriculaLabel: { type: 'text', text: "MATRICULA",
-                xPercent: 0.17, yPercent: 0.15,
-                textAlign: 'center', textBaseline: 'top' },
-            qrCode:         { type: 'qr',
-                sizePercentHeight: 0.45,
-                xPercent: 0.17, yPercent: 0.35,
-                anchor: 'center-top',
-                color: "#000000" },
-            matriculaQRValue: { type: 'text',
-                xPercent: 0.17, yPercent: 0.82,
-                textAlign: 'center', textBaseline: 'top' },
+   const DEFAULT_CONFIG = {
+    labelWidthCm: 10,
+    labelHeightCm: 3.5,
+    dpi: 600,
+    fontFamily: 'Arial, sans-serif',
+    dynamicText: {
+        baseFontSize: 35,
+        fontWeight: "normal",
+        color: "#000000"
+    },
+    labelText: {
+        baseFontSize: 30,
+        fontWeight: "normal",
+        color: "#000000"
+    },
+    codeContentText: {
+        baseFontSize: 28, // Letra para el contenido debajo de QR y Cód. Barras
+        fontWeight: "normal",
+        color: "#000000"
+    },
+    elements: {
+        // --- Sección Matrícula y QR (sin cambios respecto a tu último DEFAULT_CONFIG) ---
+        matriculaLabel: { type: 'text', text: "MATRICULA",
+            xPercent: 0.17, yPercent: 0.15,
+            textAlign: 'center', textBaseline: 'top' },
+        qrCode:         { type: 'qr',
+            sizePercentHeight: 0.45,
+            xPercent: 0.17, yPercent: 0.35, // Posición Y del QR
+            anchor: 'center-top',
+            color: "#000000" },
+        matriculaQRValue: { type: 'text', // Texto debajo del QR
+            xPercent: 0.17, yPercent: 0.82, // Posición Y del texto debajo del QR (0.35 + 0.45 + un poco de espacio)
+            textAlign: 'center', textBaseline: 'top' },
 
-            cantidadLabel:  { type: 'text', text: "CANTIDAD",
-                xPercent: 0.50, yPercent: 0.15,
-                textAlign: 'center', textBaseline: 'top' },
-            cantidadValue:  { type: 'text',
-                xPercent: 0.50, yPercent: 0.40,
-                textAlign: 'center', textBaseline: 'top' },
-            fechaLabel:     { type: 'text', text: "FECHA",
-                xPercent: 0.50, yPercent: 0.60,
-                textAlign: 'center', textBaseline: 'top' },
-            fechaValue:     { type: 'text',
-                xPercent: 0.50, yPercent: 0.85,
-                textAlign: 'center', textBaseline: 'top' },
+        // --- Sección Cantidad y Fecha (sin cambios) ---
+        cantidadLabel:  { type: 'text', text: "CANTIDAD",
+            xPercent: 0.50, yPercent: 0.15,
+            textAlign: 'center', textBaseline: 'top' },
+        cantidadValue:  { type: 'text',
+            xPercent: 0.50, yPercent: 0.40,
+            textAlign: 'center', textBaseline: 'top' },
+        fechaLabel:     { type: 'text', text: "FECHA",
+            xPercent: 0.50, yPercent: 0.60,
+            textAlign: 'center', textBaseline: 'top' },
+        fechaValue:     { type: 'text',
+            xPercent: 0.50, yPercent: 0.85,
+            textAlign: 'center', textBaseline: 'top' },
 
-            materialLabel:  { type: 'text', text: "MATERIAL",
-                xPercent: 0.83, yPercent: 0.15,
-                textAlign: 'center', textBaseline: 'top' },
-            barcode:        { type: 'barcode',
-                heightPercentHeight: 0.40,
-                widthPercentWidth: 0.30,
-                xPercent: 0.83, yPercent: 0.35,
-                anchor: 'center-top',
-                color: "#000000",
-                displayValue: false
-            },
-            materialBarcodeValue:  { type: 'text',
-                xPercent: 0.83, yPercent: 0.82,
-                textAlign: 'center', textBaseline: 'top' }
-        }
-    };
+        // --- Sección Material y Código de Barras (CON CAMBIOS) ---
+        materialLabel:  { type: 'text', text: "MATERIAL",
+            xPercent: 0.83, yPercent: 0.15, // Mantener o ajustar Y si el barcode es mucho más alto
+            textAlign: 'center', textBaseline: 'top' },
+        barcode:        { type: 'barcode',
+            // --- AJUSTES PARA HACERLO MÁS GRANDE ---
+            heightPercentHeight: 0.60,  // Ejemplo: Aumentado de 0.40 a 0.60 (60% de la altura de la etiqueta)
+            widthPercentWidth: 0.45,   // Ejemplo: Aumentado de 0.30 a 0.45 (permite más espacio horizontal)
+            // --- FIN AJUSTES ---
+            xPercent: 0.83, yPercent: 0.30,  // Posición Y del código de barras.
+                                             // Si heightPercentHeight es 0.60, y quieres que empiece un poco debajo de materialLabel (0.15)
+                                             // y que quede espacio para el texto debajo, 0.30 podría ser un buen punto de partida para yPercent.
+                                             // (0.15 (label) + un pequeño espacio + 0.30 (inicio barcode))
+                                             // El anclaje es 'center-top', así que yPercent es el borde superior.
+            anchor: 'center-top',
+            color: "#000000",
+            displayValue: false
+        },
+        materialBarcodeValue:  { type: 'text', // Texto debajo del Código de Barras
+            xPercent: 0.83, yPercent: 0.92,  // Posición Y del texto debajo del código de barras.
+                                             // Si el barcode empieza en y=0.30 y tiene alto de 0.60, termina en y=0.90.
+                                             // Así que 0.92 le da un pequeño espacio.
+            textAlign: 'center', textBaseline: 'top' }
+    }
+};
     let previewCanvas, previewCtx;
     // currentWorkingConfig ya no es necesario si todo es fijo y se toma de DEFAULT_CONFIG
     // let currentWorkingConfig = {}; // Puedes eliminar esta línea
