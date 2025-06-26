@@ -29,7 +29,7 @@ function getUrlParameter(name) {
         color: "#000000"
     },
     codeContentText: {
-        baseFontSize: 28, // Letra para el contenido debajo de QR y Cód. Barras
+        baseFontSize: 35, // Letra para el contenido debajo de QR y Cód. Barras
         fontWeight: "normal",
         color: "#000000"
     },
@@ -67,7 +67,7 @@ function getUrlParameter(name) {
             textAlign: 'center', textBaseline: 'top' },
         barcode:        { type: 'barcode',
             // --- AJUSTES PARA HACERLO MÁS GRANDE ---
-            heightPercentHeight: 0.60,  // Ejemplo: Aumentado de 0.40 a 0.60 (60% de la altura de la etiqueta)
+            heightPercentHeight: 0.80,  // Ejemplo: Aumentado de 0.40 a 0.60 (60% de la altura de la etiqueta)
             widthPercentWidth: 0.45,   // Ejemplo: Aumentado de 0.30 a 0.45 (permite más espacio horizontal)
             // --- FIN AJUSTES ---
             xPercent: 0.83, yPercent: 0.30,  // Posición Y del código de barras.
