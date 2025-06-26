@@ -165,10 +165,7 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
 
                // Dentro de la función drawOrGenerateLabel, en el bucle for (const key in config.elements)
 // ...
-                if (elConfig.type === 'text') {
-                    let textToDraw = "";
-                    let currentFontConfig = {}; // Declarar aquí para asegurar que siempre se asigna
-
+               let currentFontConfig = {}; // Declarar aquí para asegurar que siempre se asigna
                     if (key.includes("Label")) { // matriculaLabel, cantidadLabel, fechaLabel, materialLabel
                         textToDraw = elConfig.text;
                         currentFontConfig = config.labelText;
