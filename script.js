@@ -98,10 +98,22 @@ async function handlePreviewLabel() {
 }
 
 async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, isFinalGeneration = false) {
+    console.log("--- Iniciando drawOrGenerateLabel ---"); // NUEVO LOG
+    console.log("labelData:", JSON.stringify(labelData)); // NUEVO LOG
+    console.log("config (primer nivel):", { labelWidthCm: config.labelWidthCm, labelHeightCm: config.labelHeightCm, dpi: config.dpi, fontFamily: config.fontFamily }); // NUEVO LOG
+    // No imprimimos config.elements completo aquí porque es muy largo, lo haremos dentro del bucle.
+
     return new Promise(async (resolve, reject) => {
         try {
             const labelWidthPx = (config.labelWidthCm * CM_TO_INCH) * config.dpi;
             const labelHeightPx = (config.labelHeightCm * CM_TO_INCH) * config.dpi;
+            console.log(`Dimensiones calculadas (px): ${labelWidthPx} x ${labelHeightPx}`); // NUEVO LOG
+
+            if (isNaN(labelWidthPx) || isNaN(labelHeightPx) || labelWidthPx <= 0 || labelHeightPx <= 0) {
+                const errorMsg = `Dimensiones de etiqueta inválidas: ${labelWidthPx}x${labelHeightPx}px`;
+                console.error(errorMsg); // NUEVO LOG
+                return reject(new Error(errorMsg));
+            }
 
             targetCanvas.width = labelWidthPx;
             targetCanvas.height = labelHeightPx;
@@ -113,6 +125,7 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                 const previewScale = Math.min(maxWidth / labelWidthPx, maxHeight / labelHeightPx, 1);
                 targetCanvas.style.width = (labelWidthPx * previewScale) + "px";
                 targetCanvas.style.height = (labelHeightPx * previewScale) + "px";
+                console.log(`Escala de previsualización: ${previewScale}, Tamaño display: ${targetCanvas.style.width} x ${targetCanvas.style.height}`); // NUEVO LOG
             } else {
                 targetCanvas.style.width = ""; targetCanvas.style.height = "";
             }
@@ -120,12 +133,18 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
             targetCtx.clearRect(0, 0, labelWidthPx, labelHeightPx);
             targetCtx.fillStyle = "white";
             targetCtx.fillRect(0, 0, labelWidthPx, labelHeightPx);
+            console.log("Canvas limpiado y fondo blanco dibujado."); // NUEVO LOG
 
             const getScaledFontSize = (baseFontSize) => Math.max(5, baseFontSize * (labelWidthPx / 1000));
 
             for (const key in config.elements) {
                 const elConfig = config.elements[key];
-                if (elConfig.visible === false) continue;
+                console.log(`Procesando elemento: ${key}`, JSON.stringify(elConfig)); // NUEVO LOG - Muestra la config de cada elemento
+
+                if (elConfig.visible === false) {
+                    console.log(`  Elemento ${key} es invisible, saltando.`); // NUEVO LOG
+                    continue;
+                }
 
                 let elX = (elConfig.xPercent || 0) * labelWidthPx;
                 let elY = (elConfig.yPercent || 0) * labelHeightPx;
@@ -134,67 +153,73 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                     let textToDraw = "";
                     let currentFontConfig = {};
 
-                    if (key.includes("Label")) { // "matriculaLabel", "materialLabel"
+                    if (key.includes("Label")) {
                         textToDraw = elConfig.text;
                         currentFontConfig = config.labelText;
                     } else if (key === 'matriculaQRValue') {
                         textToDraw = labelData.matricula;
                         currentFontConfig = config.codeContentText;
-                    } else if (key === 'materialValueText') { // Ajustado el nombre
+                    } else if (key === 'materialValueText') {
                         textToDraw = labelData.material;
                         currentFontConfig = config.codeContentText;
                     }
-                    // Los antiguos cantidadValue y fechaValue ya no están en DEFAULT_CONFIG.elements
+                    // Ya no hay cantidadValue ni fechaValue en este layout
 
-                    if (textToDraw) { // Solo dibujar si hay texto
-                        targetCtx.font = `${currentFontConfig.fontWeight || "normal"} ${getScaledFontSize(currentFontConfig.baseFontSize)}px ${config.fontFamily}`;
+                    if (textToDraw) {
+                        const fontSize = getScaledFontSize(currentFontConfig.baseFontSize);
+                        const fontStyle = `${currentFontConfig.fontWeight || "normal"} ${fontSize}px ${config.fontFamily}`;
+                        targetCtx.font = fontStyle;
                         targetCtx.fillStyle = currentFontConfig.color || "#000000";
                         targetCtx.textAlign = elConfig.textAlign || 'left';
                         targetCtx.textBaseline = elConfig.textBaseline || 'alphabetic';
+                        console.log(`  Dibujando TEXTO '${textToDraw}' en (${elX.toFixed(0)}, ${elY.toFixed(0)}) con fuente: ${fontStyle}`); // NUEVO LOG
                         targetCtx.fillText(textToDraw, elX, elY);
+                    } else {
+                        console.log(`  TEXTO para ${key} está vacío, no se dibuja.`); // NUEVO LOG
                     }
 
-                } else if (elConfig.type === 'qr') { // Ahora tenemos dos: matriculaQrCode y materialQrCode
+                } else if (elConfig.type === 'qr') {
                     let qrSize = elConfig.sizePercentHeight * labelHeightPx;
                     let drawXqr = elX;
                     let drawYqr = elY;
-                    
                     let qrData = "";
+
                     if (key === 'matriculaQrCode') {
                         qrData = labelData.matricula;
                     } else if (key === 'materialQrCode') {
                         qrData = labelData.material;
                     }
-
+                    
                     if (elConfig.anchor === 'center-top') {
                        drawXqr = elX - qrSize / 2;
-                    } else if (elConfig.anchor === 'left-top') {
-                       // elX, elY son la esquina superior izquierda
-                    } else { // Fallback a centrado por defecto
-                        drawXqr = elX - qrSize / 2;
-                        drawYqr = elY - qrSize / 2;
-                    }
+                    } // ... otras lógicas de anchor
 
-                    if (qrData) { // Solo generar QR si hay datos
+                    if (qrData) {
+                        console.log(`  Dibujando QR para '${qrData}' en (${drawXqr.toFixed(0)}, ${drawYqr.toFixed(0)}) tamaño: ${qrSize.toFixed(0)}`); // NUEVO LOG
                         const qrContainer = document.createElement('div');
                         try {
                             new QRCode(qrContainer, { text: qrData, width: Math.round(qrSize), height: Math.round(qrSize), colorDark: elConfig.color, colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.M });
                             if (isFinalGeneration && qrContainer.querySelector('canvas')) await new Promise(r => setTimeout(r, 30));
                             const qrCanvasEl = qrContainer.querySelector('canvas');
-                            if (qrCanvasEl) targetCtx.drawImage(qrCanvasEl, drawXqr, drawYqr, qrSize, qrSize);
-                        } catch (e) { console.warn(`Error QR para ${key}:`, e); targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize); }
+                            if (qrCanvasEl) {
+                                targetCtx.drawImage(qrCanvasEl, drawXqr, drawYqr, qrSize, qrSize);
+                            } else {
+                                console.warn(`  QR canvas no encontrado para ${key}`); // NUEVO LOG
+                            }
+                        } catch (e) { console.warn(`  Error generando QR para ${key}:`, e); targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize); }
+                    } else {
+                        console.log(`  Datos para QR (${key}) están vacíos, no se dibuja.`); // NUEVO LOG
                     }
                 }
-                // La sección 'barcode' ya no existe en DEFAULT_CONFIG.elements
             }
+            console.log("--- Fin de drawOrGenerateLabel (éxito aparente) ---"); // NUEVO LOG
             if (isFinalGeneration) resolve(targetCanvas.toDataURL('image/png')); else resolve();
         } catch (error) {
-            console.error("Error en drawOrGenerateLabel:", error);
+            console.error("!!! Error MAYOR en drawOrGenerateLabel:", error); // MODIFICADO
             reject(error);
         }
     });
 }
-
 // ... (createLabelCanvas, handleGenerateAndDownload, downloadAllLabelsAsPdf) ...
 // Asegúrate de que la función getUrlParameter esté al principio del script.
 
