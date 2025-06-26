@@ -3,7 +3,7 @@ let currentScreenId = 'screen-label-generator';
 const CM_TO_INCH = 1 / 2.54;
 let previewCanvas, previewCtx; // Se inicializarán en DOMContentLoaded
 
-// Función para obtener parámetros de la URL (debe estar disponible globalmente)
+// Función para obtener parámetros de la URL
 function getUrlParameter(name) {
     name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
     var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -11,7 +11,7 @@ function getUrlParameter(name) {
     return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-// Función para clonar objetos (debe estar disponible globalmente)
+// Función para clonar objetos
 function deepClone(obj) {
     try {
         return JSON.parse(JSON.stringify(obj));
@@ -26,59 +26,54 @@ const DEFAULT_CONFIG = {
     labelHeightCm: 3.5,
     dpi: 600,
     fontFamily: 'Arial, sans-serif',
-    labelText: { // Para "MATRICULA", "MATERIAL", "CANTIDAD", "FECHA"
-        baseFontSize: 26, // Reducimos un poco para que quepan más cosas
+    labelText: {
+        baseFontSize: 26,
         fontWeight: "bold",
         color: "#000000"
     },
-    codeContentText: { // Para el valor de la matrícula y el material
-        baseFontSize: 28, // Reducimos un poco
+    codeContentText: {
+        baseFontSize: 28,
         fontWeight: "normal",
         color: "#000000"
     },
-    dynamicText: { // Para el valor de Cantidad y Fecha (si los textos son diferentes a codeContentText)
-        baseFontSize: 28, // Mismo tamaño que codeContentText por ahora
+    dynamicText: {
+        baseFontSize: 28,
         fontWeight: "normal",
         color: "#000000"
     },
     elements: {
-        // --- Sección Izquierda: MATRICULA y su QR ---
         matriculaLabel: { type: 'text', text: "MATRICULA",
-            xPercent: 0.15, yPercent: 0.05, // MÁS A LA IZQUIERDA y arriba
+            xPercent: 0.15, yPercent: 0.05,
             textAlign: 'center', textBaseline: 'top' },
-        matriculaQRValue: { type: 'text', // Valor de la matrícula
-            xPercent: 0.15, yPercent: 0.18, // Debajo del label "MATRICULA"
+        matriculaQRValue: { type: 'text',
+            xPercent: 0.15, yPercent: 0.18,
             textAlign: 'center', textBaseline: 'top' },
         matriculaQrCode: { type: 'qr',
-            sizePercentHeight: 0.55, // Reducimos un poco para dar espacio a la sección central
-            xPercent: 0.15, yPercent: 0.35, // Posición Y del QR, debajo del texto del valor
+            sizePercentHeight: 0.55,
+            xPercent: 0.15, yPercent: 0.35,
             anchor: 'center-top',
             color: "#000000" },
-
-        // --- Sección Central: CANTIDAD y FECHA (REINTRODUCIDA) ---
-        cantidadLabel:  { type: 'text', text: "CANT.", // Abreviado para ahorrar espacio
-            xPercent: 0.50, yPercent: 0.05, // Arriba en el centro
+        cantidadLabel:  { type: 'text', text: "CANT.",
+            xPercent: 0.50, yPercent: 0.05,
             textAlign: 'center', textBaseline: 'top' },
         cantidadValue:  { type: 'text',
-            xPercent: 0.50, yPercent: 0.25, // Debajo de CANT.
+            xPercent: 0.50, yPercent: 0.25,
             textAlign: 'center', textBaseline: 'top' },
         fechaLabel:     { type: 'text', text: "FECHA",
-            xPercent: 0.50, yPercent: 0.50, // Más abajo en el centro
+            xPercent: 0.50, yPercent: 0.50,
             textAlign: 'center', textBaseline: 'top' },
         fechaValue:     { type: 'text',
-            xPercent: 0.50, yPercent: 0.70, // Debajo de FECHA
+            xPercent: 0.50, yPercent: 0.70,
             textAlign: 'center', textBaseline: 'top' },
-
-        // --- Sección Derecha: MATERIAL y su QR ---
         materialLabel:  { type: 'text', text: "MATERIAL",
-            xPercent: 0.85, yPercent: 0.05, // MÁS A LA DERECHA y arriba
+            xPercent: 0.85, yPercent: 0.05,
             textAlign: 'center', textBaseline: 'top' },
         materialValueText: { type: 'text',
-            xPercent: 0.85, yPercent: 0.18, // Debajo del label "MATERIAL"
+            xPercent: 0.85, yPercent: 0.18,
             textAlign: 'center', textBaseline: 'top' },
         materialQrCode: { type: 'qr',
-            sizePercentHeight: 0.55, // Mismo tamaño que el otro QR (reducido un poco)
-            xPercent: 0.85, yPercent: 0.35, // Misma Posición Y del QR
+            sizePercentHeight: 0.55,
+            xPercent: 0.85, yPercent: 0.35,
             anchor: 'center-top',
             color: "#000000" }
     }
@@ -99,9 +94,9 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
         console.error("Canvas o Contexto no definidos en drawOrGenerateLabel");
         return Promise.reject(new Error("Canvas o Contexto no definidos."));
     }
-    if (!labelData || !config) {
-        console.error("labelData o config no definidos en drawOrGenerateLabel");
-        return Promise.reject(new Error("labelData o config no definidos."));
+    if (!labelData || !config || !config.elements) { // Añadida comprobación para config.elements
+        console.error("labelData, config o config.elements no definidos en drawOrGenerateLabel");
+        return Promise.reject(new Error("Datos de entrada o configuración incompletos."));
     }
 
     console.log("labelData:", JSON.stringify(labelData));
@@ -125,18 +120,18 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
             if (!isFinalGeneration) {
                 const previewPanel = targetCanvas.parentElement;
                 if (previewPanel && previewPanel.clientWidth > 0 && previewPanel.clientHeight > 0) {
-                    let maxWidth = previewPanel.clientWidth - 40; // Espacio para padding
-                    let maxHeight = previewPanel.clientHeight - 40; // Espacio para padding
+                    let maxWidth = previewPanel.clientWidth - 40;
+                    let maxHeight = previewPanel.clientHeight - 40;
                     const scaleX = maxWidth > 0 ? maxWidth / labelWidthPx : 1;
                     const scaleY = maxHeight > 0 ? maxHeight / labelHeightPx : 1;
-                    const previewScale = Math.min(scaleX, scaleY, 1); // No escalar más allá del 100%
+                    const previewScale = Math.min(scaleX, scaleY, 1);
                     
                     targetCanvas.style.width = (labelWidthPx * previewScale) + "px";
                     targetCanvas.style.height = (labelHeightPx * previewScale) + "px";
                     console.log(`Escala de previsualización: ${previewScale.toFixed(2)}, Tamaño display: ${targetCanvas.style.width} x ${targetCanvas.style.height}`);
                 } else {
                     console.warn("Panel de previsualización no encontrado o sin dimensiones para calcular escala.");
-                    targetCanvas.style.width = (labelWidthPx * 0.5) + "px"; // Fallback scale
+                    targetCanvas.style.width = (labelWidthPx * 0.5) + "px";
                     targetCanvas.style.height = (labelHeightPx * 0.5) + "px";
                 }
             } else {
@@ -149,7 +144,7 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
             targetCtx.fillRect(0, 0, labelWidthPx, labelHeightPx);
             console.log("Canvas limpiado y fondo blanco dibujado.");
 
-            const getScaledFontSize = (baseFontSize) => Math.max(5, baseFontSize * (labelWidthPx / 1000)); // Escala basada en ancho
+            const getScaledFontSize = (baseFontSize) => Math.max(5, baseFontSize * (labelWidthPx / 1000));
 
             for (const key in config.elements) {
                 const elConfig = config.elements[key];
@@ -163,10 +158,11 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                 let elX = (elConfig.xPercent || 0) * labelWidthPx;
                 let elY = (elConfig.yPercent || 0) * labelHeightPx;
 
-               // Dentro de la función drawOrGenerateLabel, en el bucle for (const key in config.elements)
-// ...
-               let currentFontConfig = {}; // Declarar aquí para asegurar que siempre se asigna
-                    if (key.includes("Label")) { // matriculaLabel, cantidadLabel, fechaLabel, materialLabel
+                if (elConfig.type === 'text') {
+                    let textToDraw = "";
+                    let currentFontConfig = {};
+
+                    if (key === 'matriculaLabel' || key === 'cantidadLabel' || key === 'fechaLabel' || key === 'materialLabel') {
                         textToDraw = elConfig.text;
                         currentFontConfig = config.labelText;
                     } else if (key === 'matriculaQRValue') {
@@ -175,30 +171,29 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                     } else if (key === 'materialValueText') {
                         textToDraw = labelData.material;
                         currentFontConfig = config.codeContentText;
-                    } else if (key === 'cantidadValue') { // NUEVO CASO
+                    } else if (key === 'cantidadValue') {
                         textToDraw = labelData.cantidad;
-                        currentFontConfig = config.dynamicText; // O usa codeContentText si quieres el mismo estilo
-                    } else if (key === 'fechaValue') {    // NUEVO CASO
+                        currentFontConfig = config.dynamicText;
+                    } else if (key === 'fechaValue') {
                         textToDraw = labelData.fecha;
-                        currentFontConfig = config.dynamicText; // O usa codeContentText
+                        currentFontConfig = config.dynamicText;
                     }
 
-                    if (textToDraw && currentFontConfig && currentFontConfig.baseFontSize) { // Añadida comprobación para currentFontConfig
+                    if (textToDraw && currentFontConfig && typeof currentFontConfig.baseFontSize === 'number') {
                         const fontSize = getScaledFontSize(currentFontConfig.baseFontSize);
                         const fontStyle = `${currentFontConfig.fontWeight || "normal"} ${fontSize.toFixed(0)}px ${config.fontFamily || 'Arial'}`;
                         targetCtx.font = fontStyle;
                         targetCtx.fillStyle = currentFontConfig.color || "#000000";
                         targetCtx.textAlign = elConfig.textAlign || 'left';
-                        targetCtx.textBaseline = elConfig.textBaseline || 'alphabetic'; // 'top' suele ser mejor para estos layouts
+                        targetCtx.textBaseline = elConfig.textBaseline || 'top'; // Consistente con 'top'
                         console.log(`  Dibujando TEXTO '${textToDraw}' en (${elX.toFixed(0)}, ${elY.toFixed(0)}) con fuente: ${fontStyle}`);
                         targetCtx.fillText(textToDraw, elX, elY);
                     } else {
-                        console.log(`  TEXTO para ${key} está vacío o currentFontConfig/baseFontSize falta, no se dibuja. textToDraw: '${textToDraw}', currentFontConfig:`, currentFontConfig);
+                        console.log(`  TEXTO para ${key} está vacío o currentFontConfig/baseFontSize falta/inválido. textToDraw: '${textToDraw}', currentFontConfig:`, currentFontConfig ? JSON.stringify(currentFontConfig) : 'undefined');
                     }
-// ...
 
                 } else if (elConfig.type === 'qr') {
-                    let qrSize = (elConfig.sizePercentHeight || 0.5) * labelHeightPx; // Fallback para sizePercentHeight
+                    let qrSize = (elConfig.sizePercentHeight || 0.5) * labelHeightPx;
                     let drawXqr = elX;
                     let drawYqr = elY;
                     let qrData = "";
@@ -211,17 +206,17 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                     
                     if (elConfig.anchor === 'center-top') {
                        drawXqr = elX - qrSize / 2;
-                    } // ... otras lógicas de anchor
+                    }
 
                     if (qrData) {
                         console.log(`  Dibujando QR para '${qrData}' en (${drawXqr.toFixed(0)}, ${drawYqr.toFixed(0)}) tamaño: ${qrSize.toFixed(0)}`);
-                        const qrContainer = document.createElement('div'); // Crear nuevo div para cada QR
+                        const qrContainer = document.createElement('div');
                         try {
-                            if (typeof QRCode === 'undefined') {
-                                console.error("QRCode no está definido. ¿Se cargó la librería?");
-                                throw new Error("QRCode library not loaded.");
+                            if (typeof QRCode === 'undefined') { // Usar window.QRCode si se carga globalmente y no es un módulo
+                                console.error("QRCode (o window.QRCode) no está definido.");
+                                throw new Error("Librería QRCode no cargada.");
                             }
-                            new QRCode(qrContainer, {
+                            new QRCode(qrContainer, { // Asume que QRCode está en el ámbito global
                                 text: qrData,
                                 width: Math.round(qrSize),
                                 height: Math.round(qrSize),
@@ -230,26 +225,17 @@ async function drawOrGenerateLabel(labelData, config, targetCanvas, targetCtx, i
                                 correctLevel: QRCode.CorrectLevel.M
                             });
 
-                            // Esperar a que el canvas del QR se genere
-                            // (Pequeño hack: QRCode.js es síncrono para crear el canvas, pero el renderizado puede tardar un instante)
                             const qrCanvasEl = qrContainer.querySelector('canvas');
                             if (qrCanvasEl) {
-                                if (isFinalGeneration) await new Promise(r => setTimeout(r, 50)); // Pequeña pausa para asegurar renderizado
+                                if (isFinalGeneration) await new Promise(r => setTimeout(r, 50));
                                 targetCtx.drawImage(qrCanvasEl, drawXqr, drawYqr, qrSize, qrSize);
                             } else {
-                                console.warn(`  QR canvas no encontrado inmediatamente para ${key}. Intentando de nuevo tras breve espera...`);
-                                await new Promise(r => setTimeout(r, 100)); // Esperar un poco más
-                                const qrCanvasElRetry = qrContainer.querySelector('canvas');
-                                if (qrCanvasElRetry) {
-                                     targetCtx.drawImage(qrCanvasElRetry, drawXqr, drawYqr, qrSize, qrSize);
-                                } else {
-                                     console.error(`  QR canvas SIGUE sin encontrarse para ${key}`);
-                                     targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize); // Dibujar un placeholder
-                                }
+                                console.warn(`  QR canvas no encontrado para ${key} (puede ser un problema de timing o error en QRCode).`);
+                                targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize);
                             }
                         } catch (e) {
                             console.error(`  Error generando QR para ${key}:`, e);
-                            targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize); // Dibujar un placeholder en caso de error
+                            targetCtx.strokeRect(drawXqr, drawYqr, qrSize, qrSize);
                         }
                     } else {
                         console.log(`  Datos para QR (${key}) están vacíos, no se dibuja.`);
@@ -310,7 +296,6 @@ async function handlePreviewLabel() {
     }
 }
 
-
 async function createLabelCanvas(labelData, config) {
     console.log("createLabelCanvas disparado con data:", labelData);
     const tempCanvas = document.createElement('canvas');
@@ -338,10 +323,10 @@ async function handleGenerateAndDownload() {
     statusDiv.className = 'mb-3 text-center text-muted';
 
     const matricula = document.getElementById('input-matricula').value;
-    const cantidad = document.getElementById('input-cantidad').value;
+    const cantidad = document.getElementById('input-cantidad').value; // Se recoge aunque no se use visualmente ahora
     const material = document.getElementById('input-material').value;
 
-    if (!matricula || !material) { // Cantidad ya no es visualmente crítica
+    if (!matricula || !material) { // Cantidad podría ser opcional para la validación aquí
         statusDiv.textContent = 'Matrícula y Material son campos requeridos.';
         statusDiv.className = 'mb-3 text-center text-danger';
         if(generateBtn) generateBtn.disabled = false;
@@ -391,21 +376,26 @@ async function downloadAllLabelsAsPdf(imagesData, statusDiv, pdfNamePrefix = "Et
         statusDiv.className = 'mb-3 text-center text-warning';
         return;
     }
-    if (typeof jsPDF === 'undefined') { // Comprobar si jsPDF está cargado
-        console.error("jsPDF no está definido. ¿Se cargó la librería?");
-        statusDiv.textContent = "Error: Librería PDF no cargada.";
-        statusDiv.className = 'mb-3 text-center text-danger';
+
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+        console.error("window.jspdf o window.jspdf.jsPDF no está definido.");
+        if (statusDiv) {
+            statusDiv.textContent = "Error: Librería PDF no cargada.";
+            statusDiv.className = 'mb-3 text-center text-danger';
+        }
         return;
     }
-    const { jsPDF: JSPDF_LOCAL } = window.jspdf; // Usar alias local para evitar conflictos
+    const { jsPDF: JSPDF_LOCAL } = window.jspdf;
 
     const cmToPt = (cm) => cm * CM_TO_INCH * 72;
     const pdfLabelWidthPt = cmToPt(labelConfig.labelWidthCm);
     const pdfLabelHeightPt = cmToPt(labelConfig.labelHeightCm);
 
     if (isNaN(pdfLabelWidthPt) || pdfLabelWidthPt <=0 || isNaN(pdfLabelHeightPt) || pdfLabelHeightPt <=0) {
-        statusDiv.textContent = "Dimensiones PDF inválidas.";
-        statusDiv.className = 'mb-3 text-center text-danger';
+        if (statusDiv) {
+            statusDiv.textContent = "Dimensiones PDF inválidas.";
+            statusDiv.className = 'mb-3 text-center text-danger';
+        }
         return;
     }
 
@@ -415,13 +405,14 @@ async function downloadAllLabelsAsPdf(imagesData, statusDiv, pdfNamePrefix = "Et
         pdf = new JSPDF_LOCAL({ orientation: orientation, unit: 'pt', format: [pdfLabelWidthPt, pdfLabelHeightPt] });
     } catch(e) {
         console.error("Error creando instancia de jsPDF:", e);
-        statusDiv.textContent = "Error inicializando PDF.";
-        statusDiv.className = 'mb-3 text-center text-danger';
+        if (statusDiv) {
+            statusDiv.textContent = "Error inicializando PDF.";
+            statusDiv.className = 'mb-3 text-center text-danger';
+        }
         return;
     }
 
-
-    statusDiv.textContent = "Añadiendo a PDF...";
+    if (statusDiv) statusDiv.textContent = "Añadiendo a PDF...";
     for (let i = 0; i < imagesData.length; i++) {
         const imgEntry = imagesData[i];
         if (i > 0) pdf.addPage([pdfLabelWidthPt, pdfLabelHeightPt], orientation);
@@ -429,27 +420,31 @@ async function downloadAllLabelsAsPdf(imagesData, statusDiv, pdfNamePrefix = "Et
             pdf.addImage(imgEntry.dataUrl, 'PNG', 0, 0, pdfLabelWidthPt, pdfLabelHeightPt, undefined, 'FAST');
         } catch (e) {
             console.error(`Error añadiendo imagen ${imgEntry.name} al PDF:`, e);
-            statusDiv.textContent = `Error añadiendo ${imgEntry.name} al PDF.`;
-            statusDiv.className = 'mb-3 text-center text-danger';
-            // No retornamos, intentamos continuar con otras imágenes si las hay.
+            if (statusDiv) {
+                statusDiv.textContent = `Error añadiendo ${imgEntry.name} al PDF.`;
+                statusDiv.className = 'mb-3 text-center text-danger';
+            }
         }
-        statusDiv.textContent = `Añadida ${i + 1}/${imagesData.length}`;
-        await new Promise(r => setTimeout(r, 1)); // Pequeña pausa para UI
+        if (statusDiv) statusDiv.textContent = `Añadida ${i + 1}/${imagesData.length}`;
+        await new Promise(r => setTimeout(r, 1));
     }
 
-    statusDiv.textContent = "Guardando PDF...";
+    if (statusDiv) statusDiv.textContent = "Guardando PDF...";
     try {
         pdf.save(`${pdfNamePrefix}_${imagesData[0].name.split('.')[0].replace('matricula_', '')}.pdf`);
-        statusDiv.textContent = "PDF descargado.";
-        statusDiv.className = 'mb-3 text-center text-success';
+        if (statusDiv) {
+            statusDiv.textContent = "PDF descargado.";
+            statusDiv.className = 'mb-3 text-center text-success';
+        }
     } catch (e) {
         console.error("Error guardando PDF:", e);
-        statusDiv.textContent = "Error guardando PDF.";
-        statusDiv.className = 'mb-3 text-center text-danger';
+        if (statusDiv) {
+            statusDiv.textContent = "Error guardando PDF.";
+            statusDiv.className = 'mb-3 text-center text-danger';
+        }
     }
 }
 
-// Event Listener para cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM completamente cargado y parseado.");
 
@@ -482,11 +477,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlMaterial && inputMaterial) inputMaterial.value = urlMaterial;
     
     console.log("Intentando previsualización inicial...");
-    handlePreviewLabel(); // Previsualización inicial
-
-    // Adjuntar event listeners a los botones explícitamente aquí
-    // Aunque ya tienes onclick en HTML, esto es más robusto si el HTML cambia.
-    // Pero por ahora, dejaremos los onclick del HTML.
+    // Asegurarse de que las librerías estén cargadas antes de la primera previsualización podría ser necesario
+    // pero con los scripts al final del body, DOMContentLoaded debería ser suficiente.
+    handlePreviewLabel();
 
     const initialScreen = document.getElementById(currentScreenId);
     if (initialScreen) {
@@ -498,4 +491,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-console.log("Script.js cargado completamente."); // Log final para saber que el script se leyó entero
+console.log("Script.js cargado completamente.");
